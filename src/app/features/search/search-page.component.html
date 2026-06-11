@@ -1,0 +1,35 @@
+<section class="search-page">
+  <div class="search-page__intro">
+    <p>Hotel booking platform</p>
+    <h1>Find a stay that fits the trip.</h1>
+  </div>
+
+  <form class="search-form" [formGroup]="searchForm" (ngSubmit)="submitSearch()">
+    <label class="field field--wide">
+      <span>Destination</span>
+      <input type="text" formControlName="destination" placeholder="Washington, D.C." />
+    </label>
+
+    <label class="field">
+      <span>Check-in</span>
+      <input type="date" formControlName="checkInDate" />
+    </label>
+
+    <label class="field">
+      <span>Check-out</span>
+      <input type="date" formControlName="checkOutDate" />
+    </label>
+
+    <label class="field">
+      <span>Guests</span>
+      <input type="number" min="1" formControlName="guests" />
+    </label>
+
+    <label class="field">
+      <span>Rooms</span>
+      <input type="number" min="1" formControlName="rooms" />
+    </label>
+
+    <button type="submit">Search hotels</button>
+  </form>
+</section>

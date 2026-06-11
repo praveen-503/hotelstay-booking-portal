@@ -1,0 +1,85 @@
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { EMPTY, catchError, finalize, switchMap, tap } from 'rxjs';
+
+import { HotelCardComponent } from '../../shared/components/hotel-card/hotel-card.component';
+import { StatusBannerComponent } from '../../shared/components/status-banner/status-banner.component';
+import { HotelResult, SearchRequest } from '../../core/models';
+import { BookingFlowStore } from '../../core/services/booking-flow.store';
+import { HotelSearchService } from '../../core/services/hotel-search.service';
+
+@Component({
+  selector: 'app-results-page',
+  imports: [HotelCardComponent, StatusBannerComponent],
+  templateUrl: './results-page.component.html',
+  styleUrl: './results-page.component.scss'
+})
+export class ResultsPageComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly hotelSearchService = inject(HotelSearchService);
+  private readonly bookingFlowStore = inject(BookingFlowStore);
+
+  readonly hotels = signal<readonly HotelResult[]>([]);
+  readonly searchRequest = signal<SearchRequest | null>(null);
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.route.queryParamMap
+      .pipe(
+        tap(() => {
+          this.isLoading.set(true);
+          this.errorMessage.set(null);
+        }),
+        switchMap((params) => {
+          const request = this.createSearchRequest(params);
+
+          if (request === null) {
+            this.isLoading.set(false);
+            this.errorMessage.set('Start with a hotel search to see available stays.');
+            return EMPTY;
+          }
+
+          this.searchRequest.set(request);
+          this.bookingFlowStore.setSearch(request);
+
+          return this.hotelSearchService.searchHotels(request).pipe(
+            catchError((error: unknown) => {
+              this.hotels.set([]);
+              this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load hotels.');
+              return EMPTY;
+            }),
+            finalize(() => this.isLoading.set(false))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((hotels) => this.hotels.set(hotels));
+  }
+
+  selectHotel(hotel: HotelResult): void {
+    this.bookingFlowStore.setHotel(hotel);
+    void this.router.navigate(['/booking', hotel.id]);
+  }
+
+  private createSearchRequest(params: ParamMap): SearchRequest | null {
+    const destination = params.get('destination');
+    const checkInDate = params.get('checkInDate');
+    const checkOutDate = params.get('checkOutDate');
+
+    if (!destination || !checkInDate || !checkOutDate) {
+      return null;
+    }
+
+    return {
+      destination,
+      checkInDate,
+      checkOutDate,
+      guests: Number(params.get('guests') ?? 1),
+      rooms: Number(params.get('rooms') ?? 1)
+    };
+  }
+}

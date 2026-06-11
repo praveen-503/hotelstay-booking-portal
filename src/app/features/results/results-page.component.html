@@ -1,0 +1,31 @@
+<section class="results-page">
+  <header class="results-page__header">
+    <div>
+      <p>Available hotels</p>
+      <h1>{{ searchRequest()?.destination ?? 'Search results' }}</h1>
+    </div>
+
+    @if (searchRequest(); as request) {
+      <div class="trip-summary">
+        <span>{{ request.checkInDate }} to {{ request.checkOutDate }}</span>
+        <strong>{{ request.guests }} guests, {{ request.rooms }} rooms</strong>
+      </div>
+    }
+  </header>
+
+  <app-status-banner [message]="errorMessage()" type="error" />
+
+  @if (isLoading()) {
+    <div class="loading-state">Loading hotels...</div>
+  } @else {
+    <div class="hotel-list">
+      @for (hotel of hotels(); track hotel.id) {
+        <app-hotel-card [hotel]="hotel" (selectHotel)="selectHotel($event)" />
+      } @empty {
+        @if (!errorMessage()) {
+          <div class="empty-state">No hotels matched this search.</div>
+        }
+      }
+    </div>
+  }
+</section>

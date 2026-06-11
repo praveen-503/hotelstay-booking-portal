@@ -1,0 +1,80 @@
+.app-shell {
+  min-height: 100vh;
+  background: #f4f7f8;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  border-bottom: 1px solid #dde6e9;
+  background: rgb(255 255 255 / 94%);
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+  backdrop-filter: blur(12px);
+}
+
+.brand,
+nav a {
+  color: #14212b;
+  text-decoration: none;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.brand__mark {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border-radius: 8px;
+  background: #0f766e;
+  color: #ffffff;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+nav a {
+  border-radius: 8px;
+  color: #52636b;
+  font-weight: 700;
+  padding: 0.65rem 0.85rem;
+}
+
+nav a.active,
+nav a:hover {
+  background: #e6f2ef;
+  color: #0f5e57;
+}
+
+.page {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  nav {
+    justify-content: flex-start;
+  }
+}

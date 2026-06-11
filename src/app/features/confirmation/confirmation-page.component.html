@@ -1,0 +1,38 @@
+<section class="confirmation-page">
+  @if (booking(); as confirmedBooking) {
+    <div class="confirmation-panel">
+      <p>Booking confirmed</p>
+      <h1>{{ confirmedBooking.hotelName }}</h1>
+      <strong class="confirmation-number">{{ confirmedBooking.confirmationNumber }}</strong>
+
+      <dl>
+        <div>
+          <dt>Guest</dt>
+          <dd>{{ confirmedBooking.guestName }}</dd>
+        </div>
+        <div>
+          <dt>Dates</dt>
+          <dd>{{ confirmedBooking.checkInDate }} to {{ confirmedBooking.checkOutDate }}</dd>
+        </div>
+        <div>
+          <dt>Total</dt>
+          <dd>
+            {{ confirmedBooking.totalAmount | currency: confirmedBooking.currency : 'symbol' : '1.0-0' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{{ confirmedBooking.status }}</dd>
+        </div>
+      </dl>
+
+      <a routerLink="/search">Book another stay</a>
+    </div>
+  } @else {
+    <div class="confirmation-panel">
+      <p>No booking found</p>
+      <h1>Start a search to create a reservation.</h1>
+      <a routerLink="/search">Search hotels</a>
+    </div>
+  }
+</section>

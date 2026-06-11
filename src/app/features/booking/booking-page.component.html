@@ -1,0 +1,69 @@
+<section class="booking-page">
+  <header>
+    <p>Secure booking</p>
+    <h1>Complete your reservation</h1>
+  </header>
+
+  <app-status-banner [message]="errorMessage()" type="error" />
+
+  @if (isLoading() && !hotel()) {
+    <div class="panel">Loading hotel...</div>
+  } @else {
+    <div class="booking-grid">
+      <aside class="summary-panel">
+        @if (hotel(); as selectedHotel) {
+          <img [src]="selectedHotel.imageUrl" [alt]="selectedHotel.name" />
+          <h2>{{ selectedHotel.name }}</h2>
+          <p>{{ selectedHotel.address }}, {{ selectedHotel.city }}</p>
+
+          @if (selectedSearch(); as search) {
+            <dl>
+              <div>
+                <dt>Dates</dt>
+                <dd>{{ search.checkInDate }} to {{ search.checkOutDate }}</dd>
+              </div>
+              <div>
+                <dt>Guests</dt>
+                <dd>{{ search.guests }} guests, {{ search.rooms }} rooms</dd>
+              </div>
+              <div>
+                <dt>Estimated total</dt>
+                <dd>
+                  {{ estimatedTotal() | currency: selectedHotel.currency : 'symbol' : '1.0-0' }}
+                </dd>
+              </div>
+            </dl>
+          }
+        } @else {
+          <p>Hotel details are not available.</p>
+        }
+      </aside>
+
+      <form class="booking-form" [formGroup]="bookingForm" (ngSubmit)="submitBooking()">
+        <label>
+          <span>Full name</span>
+          <input type="text" formControlName="guestName" autocomplete="name" />
+        </label>
+
+        <label>
+          <span>Email</span>
+          <input type="email" formControlName="guestEmail" autocomplete="email" />
+        </label>
+
+        <label>
+          <span>Phone</span>
+          <input type="tel" formControlName="guestPhone" autocomplete="tel" />
+        </label>
+
+        <label>
+          <span>Special requests</span>
+          <textarea rows="5" formControlName="specialRequests"></textarea>
+        </label>
+
+        <button type="submit" [disabled]="isLoading()">
+          {{ isLoading() ? 'Confirming...' : 'Confirm booking' }}
+        </button>
+      </form>
+    </div>
+  }
+</section>

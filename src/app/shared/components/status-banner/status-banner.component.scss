@@ -1,0 +1,14 @@
+.status-banner {
+  border: 1px solid #b9d8c2;
+  border-radius: 8px;
+  background: #eef8f1;
+  color: #24553a;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+}
+
+.status-banner--error {
+  border-color: #f1b8b8;
+  background: #fff1f1;
+  color: #8e2828;
+}

@@ -1,0 +1,27 @@
+<article class="hotel-card">
+  <img class="hotel-card__image" [src]="hotel().imageUrl" [alt]="hotel().name" />
+
+  <div class="hotel-card__content">
+    <div class="hotel-card__heading">
+      <div>
+        <h3>{{ hotel().name }}</h3>
+        <p>{{ hotel().address }}, {{ hotel().city }}</p>
+      </div>
+      <span class="hotel-card__rating">{{ hotel().rating }}/5</span>
+    </div>
+
+    <div class="hotel-card__amenities">
+      @for (amenity of hotel().amenities; track amenity) {
+        <span>{{ amenity }}</span>
+      }
+    </div>
+
+    <div class="hotel-card__footer">
+      <div>
+        <strong>{{ hotel().nightlyRate | currency: hotel().currency : 'symbol' : '1.0-0' }}</strong>
+        <span>per night</span>
+      </div>
+      <button type="button" (click)="selectHotel.emit(hotel())">Book now</button>
+    </div>
+  </div>
+</article>

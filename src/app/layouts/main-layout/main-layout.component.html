@@ -1,0 +1,18 @@
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/search" aria-label="HotelStay home">
+      <span class="brand__mark">H</span>
+      <span>HotelStay</span>
+    </a>
+
+    <nav aria-label="Primary navigation">
+      <a routerLink="/search" routerLinkActive="active">Search</a>
+      <a routerLink="/results" routerLinkActive="active">Results</a>
+      <a routerLink="/confirmation" routerLinkActive="active">Confirmation</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <router-outlet />
+  </main>
+</div>
