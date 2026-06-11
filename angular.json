@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "hotelstay-booking-ui": {
+    "hotelstay-booking-portal": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -69,10 +69,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "hotelstay-booking-ui:build:production"
+              "buildTarget": "hotelstay-booking-portal:build:production"
             },
             "development": {
-              "buildTarget": "hotelstay-booking-ui:build:development"
+              "buildTarget": "hotelstay-booking-portal:build:development"
             }
           },
           "defaultConfiguration": "development"
