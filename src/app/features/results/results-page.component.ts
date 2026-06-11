@@ -2,16 +2,18 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { EMPTY, catchError, finalize, switchMap, tap } from 'rxjs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { HotelCardComponent } from '../../shared/components/hotel-card/hotel-card.component';
 import { StatusBannerComponent } from '../../shared/components/status-banner/status-banner.component';
 import { HotelResult, SearchRequest } from '../../core/models';
 import { BookingFlowStore } from '../../core/services/booking-flow.store';
 import { HotelSearchService } from '../../core/services/hotel-search.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-results-page',
-  imports: [HotelCardComponent, StatusBannerComponent, RouterLink],
+  imports: [HotelCardComponent, StatusBannerComponent, RouterLink, MatProgressSpinnerModule],
   templateUrl: './results-page.component.html',
   styleUrl: './results-page.component.scss'
 })
@@ -21,6 +23,7 @@ export class ResultsPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly hotelSearchService = inject(HotelSearchService);
   private readonly bookingFlowStore = inject(BookingFlowStore);
+  private readonly toastService = inject(ToastService);
 
   readonly hotels = signal<readonly HotelResult[]>([]);
   readonly searchRequest = signal<SearchRequest | null>(null);
@@ -58,6 +61,7 @@ export class ResultsPageComponent implements OnInit {
         tap(() => {
           this.isLoading.set(true);
           this.errorMessage.set(null);
+          this.toastService.info('Searching for available stays...', 1500);
         }),
         switchMap((params) => {
           const request = this.createSearchRequest(params);
@@ -72,9 +76,18 @@ export class ResultsPageComponent implements OnInit {
           this.bookingFlowStore.setSearch(request);
 
           return this.hotelSearchService.searchHotels(request).pipe(
+            tap((hotels) => {
+              if (hotels.length > 0) {
+                this.toastService.success(`Found ${hotels.length} hotels in ${request.destination}!`);
+              } else {
+                this.toastService.info(`No hotels found in ${request.destination}.`);
+              }
+            }),
             catchError((error: unknown) => {
               this.hotels.set([]);
-              this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load hotels.');
+              const errMsg = error instanceof Error ? error.message : 'Unable to load hotels.';
+              this.errorMessage.set(errMsg);
+              this.toastService.error(errMsg);
               return EMPTY;
             }),
             finalize(() => this.isLoading.set(false))

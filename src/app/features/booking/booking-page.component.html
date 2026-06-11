@@ -7,14 +7,17 @@
   <app-status-banner [message]="errorMessage()" type="error" />
 
   @if (isLoading() && !hotel()) {
-    <div class="panel">Loading hotel...</div>
+    <div class="panel loading-panel">
+      <mat-progress-spinner mode="indeterminate" diameter="40" color="primary"></mat-progress-spinner>
+      <span>Loading hotel details...</span>
+    </div>
   } @else {
     <div class="booking-grid">
       <aside class="summary-panel">
         @if (hotel(); as selectedHotel) {
           <img [src]="selectedHotel.imageUrl" [alt]="selectedHotel.name" />
           <h2>{{ selectedHotel.name }}</h2>
-          <p>{{ selectedHotel.address }}, {{ selectedHotel.city }}</p>
+          <p>{{ selectedHotel.address }}, {{ selectedHotel.city }}, {{ selectedHotel.country }}</p>
 
           @if (selectedSearch(); as search) {
             <dl>
@@ -40,28 +43,65 @@
       </aside>
 
       <form class="booking-form" [formGroup]="bookingForm" (ngSubmit)="submitBooking()">
-        <label>
-          <span>Full name</span>
-          <input type="text" formControlName="guestName" autocomplete="name" />
+        @if (hotel()) {
+          <div class="destination-alert" [class.destination-alert--international]="isInternational()">
+            @if (isInternational()) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alert-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span><strong>International Travel:</strong> A Passport is required for travel to {{ hotel()?.city }}, {{ hotel()?.country }}.</span>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alert-icon"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              <span><strong>Domestic Travel:</strong> Passport or National ID are accepted.</span>
+            }
+          </div>
+        }
+
+        <label class="field" [class.field--error]="bookingForm.get('passengerName')?.invalid && bookingForm.get('passengerName')?.touched">
+          <span>Passenger Name</span>
+          <input type="text" formControlName="passengerName" placeholder="John Doe" autocomplete="name" />
+          
+          @if (bookingForm.get('passengerName')?.touched && bookingForm.get('passengerName')?.invalid) {
+            <span class="field-error">
+              @if (bookingForm.get('passengerName')?.hasError('required')) { Passenger Name is required. }
+              @if (bookingForm.get('passengerName')?.hasError('serverError')) { {{ bookingForm.get('passengerName')?.getError('serverError') }} }
+            </span>
+          }
         </label>
 
-        <label>
-          <span>Email</span>
-          <input type="email" formControlName="guestEmail" autocomplete="email" />
+        <label class="field" [class.field--error]="bookingForm.get('documentType')?.invalid && bookingForm.get('documentType')?.touched">
+          <span>Document Type</span>
+          <select formControlName="documentType">
+            <option value="" disabled selected>Select Document Type</option>
+            <option value="Passport">Passport</option>
+            <option value="NationalId">National ID</option>
+          </select>
+
+          @if (bookingForm.get('documentType')?.touched && bookingForm.get('documentType')?.invalid) {
+            <span class="field-error">
+              @if (bookingForm.get('documentType')?.hasError('required')) { Document Type is required. }
+              @if (bookingForm.get('documentType')?.hasError('internationalPassportRequired')) { Passport is required for international travel. }
+              @if (bookingForm.get('documentType')?.hasError('serverError')) { {{ bookingForm.get('documentType')?.getError('serverError') }} }
+            </span>
+          }
         </label>
 
-        <label>
-          <span>Phone</span>
-          <input type="tel" formControlName="guestPhone" autocomplete="tel" />
+        <label class="field" [class.field--error]="bookingForm.get('documentNumber')?.invalid && bookingForm.get('documentNumber')?.touched">
+          <span>Document Number</span>
+          <input type="text" formControlName="documentNumber" placeholder="A12345678" />
+
+          @if (bookingForm.get('documentNumber')?.touched && bookingForm.get('documentNumber')?.invalid) {
+            <span class="field-error">
+              @if (bookingForm.get('documentNumber')?.hasError('required')) { Document Number is required. }
+              @if (bookingForm.get('documentNumber')?.hasError('serverError')) { {{ bookingForm.get('documentNumber')?.getError('serverError') }} }
+            </span>
+          }
         </label>
 
-        <label>
-          <span>Special requests</span>
-          <textarea rows="5" formControlName="specialRequests"></textarea>
-        </label>
-
-        <button type="submit" [disabled]="isLoading()">
-          {{ isLoading() ? 'Confirming...' : 'Confirm booking' }}
+        <button type="submit" [disabled]="isLoading()" class="submit-btn">
+          @if (isLoading()) {
+            <span>Processing...</span>
+          } @else {
+            <span>Confirm booking</span>
+          }
         </button>
       </form>
     </div>

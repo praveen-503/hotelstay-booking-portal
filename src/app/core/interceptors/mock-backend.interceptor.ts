@@ -1,5 +1,5 @@
-import { HttpEvent, HttpResponse, HttpInterceptorFn } from '@angular/common/http';
-import { Observable, delay, of } from 'rxjs';
+import { HttpEvent, HttpResponse, HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { Observable, delay, of, throwError } from 'rxjs';
 import { HotelResult, BookingResponse } from '../models';
 
 const MOCK_HOTELS: readonly HotelResult[] = [
@@ -7,6 +7,7 @@ const MOCK_HOTELS: readonly HotelResult[] = [
     id: '1',
     name: 'Grand Premier Plaza',
     city: 'New York',
+    country: 'USA',
     address: '768 5th Ave',
     rating: 4.8,
     stars: 5,
@@ -23,6 +24,7 @@ const MOCK_HOTELS: readonly HotelResult[] = [
     id: '2',
     name: 'Manhattan Budget Nest',
     city: 'New York',
+    country: 'USA',
     address: '123 W 34th St',
     rating: 3.9,
     stars: 3,
@@ -39,6 +41,7 @@ const MOCK_HOTELS: readonly HotelResult[] = [
     id: '3',
     name: 'Miami Premier Beach Resort',
     city: 'Miami',
+    country: 'USA',
     address: '1020 Ocean Dr',
     rating: 4.6,
     stars: 5,
@@ -55,6 +58,7 @@ const MOCK_HOTELS: readonly HotelResult[] = [
     id: '4',
     name: 'Sunny Budget Nest Miami',
     city: 'Miami',
+    country: 'USA',
     address: '456 Collins Ave',
     rating: 4.1,
     stars: 2,
@@ -71,6 +75,7 @@ const MOCK_HOTELS: readonly HotelResult[] = [
     id: '5',
     name: 'Premier Executive Capital',
     city: 'Washington',
+    country: 'USA',
     address: '1500 Pennsylvania Ave NW',
     rating: 4.7,
     stars: 4,
@@ -87,6 +92,7 @@ const MOCK_HOTELS: readonly HotelResult[] = [
     id: '6',
     name: 'Capitol Budget Cozy Nest',
     city: 'Washington',
+    country: 'USA',
     address: '789 K St NW',
     rating: 3.5,
     nightlyRate: 79,
@@ -97,8 +103,67 @@ const MOCK_HOTELS: readonly HotelResult[] = [
     refundable: false,
     provider: 'BudgetNests',
     roomType: 'Economy Single Room'
+  },
+  {
+    id: '7',
+    name: 'London Premier Tower',
+    city: 'London',
+    country: 'United Kingdom',
+    address: '35 Tower Hill',
+    rating: 4.8,
+    stars: 5,
+    nightlyRate: 180,
+    currency: 'GBP',
+    imageUrl: 'https://images.unsplash.com/photo-1513635269975-59663e0ca1ad?auto=format&fit=crop&w=800&q=80',
+    amenities: ['Free WiFi', 'Fitness Center', 'Restaurant', 'Bar', 'Room Service'],
+    availableRooms: 6,
+    refundable: true,
+    provider: 'PremierStays',
+    roomType: 'Superior Double Room'
   }
 ];
+
+const DEFAULT_BOOKING: BookingResponse = {
+  bookingId: 'bk_default',
+  confirmationNumber: 'HS-777777',
+  hotelName: 'Grand Premier Plaza',
+  passengerName: 'Jane Doe',
+  checkInDate: '2026-06-15',
+  checkOutDate: '2026-06-18',
+  totalAmount: 1794, // 299 * 2 rooms * 3 nights = 1794
+  currency: 'USD',
+  status: 'confirmed',
+  provider: 'PremierStays',
+  roomType: 'Deluxe King Suite',
+  refundable: true
+};
+
+const getStoredBookings = (): BookingResponse[] => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return [DEFAULT_BOOKING];
+  }
+  try {
+    const data = localStorage.getItem('mock_bookings');
+    const bookings = data ? JSON.parse(data) : [];
+    if (!bookings.some((b: any) => b.confirmationNumber === 'HS-777777')) {
+      bookings.push(DEFAULT_BOOKING);
+    }
+    return bookings;
+  } catch {
+    return [DEFAULT_BOOKING];
+  }
+};
+
+const storeBooking = (booking: BookingResponse) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return;
+  }
+  try {
+    const bookings = getStoredBookings();
+    bookings.push(booking);
+    localStorage.setItem('mock_bookings', JSON.stringify(bookings));
+  } catch {}
+};
 
 export const mockBackendInterceptor: HttpInterceptorFn = (request, next) => {
   const { url, method, params } = request;
@@ -107,10 +172,11 @@ export const mockBackendInterceptor: HttpInterceptorFn = (request, next) => {
   if (url.endsWith('/hotels/search') && method === 'GET') {
     const destination = params.get('destination')?.toLowerCase() || '';
 
-    // Filter hotels by destination matching city or address
+    // Filter hotels by destination matching city, country or address
     const filteredHotels = MOCK_HOTELS.filter(
       (hotel) =>
         hotel.city.toLowerCase().includes(destination) ||
+        hotel.country.toLowerCase().includes(destination) ||
         hotel.address.toLowerCase().includes(destination) ||
         destination.includes(hotel.city.toLowerCase())
     );
@@ -118,7 +184,26 @@ export const mockBackendInterceptor: HttpInterceptorFn = (request, next) => {
     return of(new HttpResponse({ status: 200, body: filteredHotels })).pipe(delay(600));
   }
 
-  // Intercept Get By ID
+  // Intercept Get Booking by Reference
+  const bookingRefMatch = url.match(/\/hotels\/booking\/([^/]+)$/);
+  if (bookingRefMatch && method === 'GET') {
+    const reference = bookingRefMatch[1];
+    const bookings = getStoredBookings();
+    const booking = bookings.find((b) => b.confirmationNumber === reference);
+
+    if (booking) {
+      return of(new HttpResponse({ status: 200, body: booking })).pipe(delay(400));
+    } else {
+      return throwError(() => new HttpErrorResponse({
+        status: 404,
+        statusText: 'Not Found',
+        error: { message: `Booking with reference number ${reference} not found.` },
+        url
+      })).pipe(delay(300));
+    }
+  }
+
+  // Intercept Get Hotel By ID
   const hotelIdMatch = url.match(/\/hotels\/([^/]+)$/);
   if (hotelIdMatch && method === 'GET') {
     const id = hotelIdMatch[1];
@@ -127,27 +212,57 @@ export const mockBackendInterceptor: HttpInterceptorFn = (request, next) => {
     if (hotel) {
       return of(new HttpResponse({ status: 200, body: hotel })).pipe(delay(300));
     } else {
-      return of(
-        new HttpResponse({
-          status: 404,
-          body: { message: `Hotel with ID ${id} not found.` }
-        })
-      ).pipe(delay(300));
+      return throwError(() => new HttpErrorResponse({
+        status: 404,
+        statusText: 'Not Found',
+        error: { message: `Hotel with ID ${id} not found.` },
+        url
+      })).pipe(delay(300));
     }
   }
 
   // Intercept Booking Creation
-  if (url.endsWith('/bookings') && method === 'POST') {
+  if (url.endsWith('/hotels/book') && method === 'POST') {
     const body = request.body as any;
     const hotel = MOCK_HOTELS.find((h) => h.id === body.hotelId);
 
     if (!hotel) {
-      return of(
-        new HttpResponse({
-          status: 404,
-          body: { message: `Hotel with ID ${body.hotelId} not found.` }
-        })
-      ).pipe(delay(300));
+      return throwError(() => new HttpErrorResponse({
+        status: 404,
+        statusText: 'Not Found',
+        error: { message: `Hotel with ID ${body.hotelId} not found.` },
+        url
+      })).pipe(delay(300));
+    }
+
+    // Backend Validation checks
+    const errors: Record<string, string> = {};
+    if (!body.passengerName?.trim()) {
+      errors['passengerName'] = 'Passenger Name is required.';
+    }
+    if (!body.documentType) {
+      errors['documentType'] = 'Document Type is required.';
+    }
+    if (!body.documentNumber?.trim()) {
+      errors['documentNumber'] = 'Document Number is required.';
+    }
+
+    // International rules validation
+    if (hotel.country !== 'USA' && body.documentType && body.documentType !== 'Passport') {
+      errors['documentType'] = 'Passport is required for international travel.';
+    }
+
+    // Return 422 on validation failures
+    if (Object.keys(errors).length > 0) {
+      return throwError(() => new HttpErrorResponse({
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        error: {
+          message: 'Validation failed',
+          errors
+        },
+        url
+      })).pipe(delay(400));
     }
 
     const checkIn = new Date(body.checkInDate);
@@ -160,13 +275,18 @@ export const mockBackendInterceptor: HttpInterceptorFn = (request, next) => {
       bookingId: 'bk_' + Math.random().toString(36).substring(2, 11),
       confirmationNumber: 'HS-' + Math.floor(100000 + Math.random() * 900000),
       hotelName: hotel.name,
-      guestName: body.guestName,
+      passengerName: body.passengerName,
       checkInDate: body.checkInDate,
       checkOutDate: body.checkOutDate,
       totalAmount,
       currency: hotel.currency,
-      status: 'confirmed'
+      status: 'confirmed',
+      provider: hotel.provider,
+      roomType: hotel.roomType,
+      refundable: hotel.refundable
     };
+
+    storeBooking(response);
 
     return of(new HttpResponse({ status: 201, body: response })).pipe(delay(800));
   }

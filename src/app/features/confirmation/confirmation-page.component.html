@@ -1,38 +1,92 @@
 <section class="confirmation-page">
-  @if (booking(); as confirmedBooking) {
-    <div class="confirmation-panel">
-      <p>Booking confirmed</p>
-      <h1>{{ confirmedBooking.hotelName }}</h1>
-      <strong class="confirmation-number">{{ confirmedBooking.confirmationNumber }}</strong>
-
-      <dl>
-        <div>
-          <dt>Guest</dt>
-          <dd>{{ confirmedBooking.guestName }}</dd>
-        </div>
-        <div>
-          <dt>Dates</dt>
-          <dd>{{ confirmedBooking.checkInDate }} to {{ confirmedBooking.checkOutDate }}</dd>
-        </div>
-        <div>
-          <dt>Total</dt>
-          <dd>
-            {{ confirmedBooking.totalAmount | currency: confirmedBooking.currency : 'symbol' : '1.0-0' }}
-          </dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd>{{ confirmedBooking.status }}</dd>
-        </div>
-      </dl>
-
-      <a routerLink="/search">Book another stay</a>
+  @if (isLoading()) {
+    <div class="loading-panel">
+      <mat-progress-spinner mode="indeterminate" diameter="40" color="primary"></mat-progress-spinner>
+      <span>Retrieving booking confirmation details...</span>
+    </div>
+  } @else if (errorMessage(); as errorMsg) {
+    <div class="error-panel">
+      <div class="error-panel__icon">⚠️</div>
+      <h2>Retrieving Booking Failed</h2>
+      <p>{{ errorMsg }}</p>
+      <a routerLink="/search" class="error-panel__btn">Return to Search</a>
     </div>
   } @else {
-    <div class="confirmation-panel">
-      <p>No booking found</p>
-      <h1>Start a search to create a reservation.</h1>
-      <a routerLink="/search">Search hotels</a>
-    </div>
+    @if (booking(); as confirmedBooking) {
+      <div class="success-banner">
+        <div class="success-banner__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h1>Booking completed successfully!</h1>
+        <p>A confirmation email has been sent with your stay details.</p>
+      </div>
+
+      <div class="confirmation-card">
+        <header class="confirmation-card__header">
+          <div class="header-info">
+            <span class="ref-label">Reference Number</span>
+            <strong class="ref-number">{{ confirmedBooking.confirmationNumber }}</strong>
+          </div>
+          <span class="status-pill status-pill--{{ confirmedBooking.status }}">
+            {{ confirmedBooking.status }}
+          </span>
+        </header>
+
+        <div class="confirmation-card__details">
+          <div class="details-section">
+            <h3>Hotel Details</h3>
+            <div class="hotel-info">
+              <h4>{{ confirmedBooking.hotelName }}</h4>
+              <span class="provider-tag" [class.provider-tag--premier]="confirmedBooking.provider === 'PremierStays'" [class.provider-tag--budget]="confirmedBooking.provider === 'BudgetNests'">
+                {{ confirmedBooking.provider }}
+              </span>
+            </div>
+            <p class="hotel-dates">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>Stay Duration: {{ confirmedBooking.checkInDate }} to {{ confirmedBooking.checkOutDate }}</span>
+            </p>
+          </div>
+
+          <div class="details-section">
+            <h3>Stay Information</h3>
+            <div class="info-row">
+              <span class="label">Passenger</span>
+              <span class="value">{{ confirmedBooking.passengerName }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Room Type</span>
+              <span class="value">{{ confirmedBooking.roomType }}</span>
+            </div>
+          </div>
+
+          <div class="details-section details-section--billing">
+            <h3>Billing & Policy</h3>
+            <div class="info-row">
+              <span class="label">Cancellation Policy</span>
+              <span class="policy-badge" [class.policy-badge--refundable]="confirmedBooking.refundable" [class.policy-badge--non-refundable]="!confirmedBooking.refundable">
+                {{ confirmedBooking.refundable ? 'Free Cancellation' : 'Non-refundable' }}
+              </span>
+            </div>
+            <div class="total-row">
+              <span class="label">Total Paid</span>
+              <strong class="price-val">
+                {{ confirmedBooking.totalAmount | currency: confirmedBooking.currency : 'symbol' : '1.0-0' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a routerLink="/search" class="search-again-btn">Search Again</a>
+      </div>
+    } @else {
+      <div class="error-panel">
+        <div class="error-panel__icon">ℹ️</div>
+        <h2>No Booking Found</h2>
+        <p>Please start a search to book a new hotel stay.</p>
+        <a routerLink="/search" class="error-panel__btn">Search Hotels</a>
+      </div>
+    }
   }
 </section>

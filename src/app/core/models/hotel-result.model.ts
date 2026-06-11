@@ -2,6 +2,7 @@ export interface HotelResult {
   id: string;
   name: string;
   city: string;
+  country: string;
   address: string;
   rating: number;
   stars?: number;

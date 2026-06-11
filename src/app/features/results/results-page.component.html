@@ -17,7 +17,7 @@
 
   @if (isLoading()) {
     <div class="loading-state">
-      <div class="spinner"></div>
+      <mat-progress-spinner mode="indeterminate" diameter="40" color="primary"></mat-progress-spinner>
       <span>Finding the best hotels for you...</span>
     </div>
   } @else {

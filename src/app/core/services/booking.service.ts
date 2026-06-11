@@ -11,6 +11,10 @@ export class BookingService {
   private readonly baseUrl = environment.apiUrl;
 
   createBooking(request: BookingRequest): Observable<BookingResponse> {
-    return this.http.post<BookingResponse>(`${this.baseUrl}/bookings`, request);
+    return this.http.post<BookingResponse>(`${this.baseUrl}/hotels/book`, request);
+  }
+
+  getBookingByReference(reference: string): Observable<BookingResponse> {
+    return this.http.get<BookingResponse>(`${this.baseUrl}/hotels/booking/${reference}`);
   }
 }

@@ -4,8 +4,7 @@ export interface BookingRequest {
   checkOutDate: string;
   guests: number;
   rooms: number;
-  guestName: string;
-  guestEmail: string;
-  guestPhone: string;
-  specialRequests?: string;
+  passengerName: string;
+  documentType: 'Passport' | 'NationalId';
+  documentNumber: string;
 }

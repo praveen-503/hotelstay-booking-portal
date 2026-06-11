@@ -1,18 +1,62 @@
 <div class="app-shell">
-  <header class="topbar">
+  <mat-toolbar color="primary" class="header-toolbar mat-elevation-z2">
     <a class="brand" routerLink="/search" aria-label="HotelStay home">
-      <span class="brand__mark">H</span>
+      <mat-icon class="brand__icon">hotel_class</mat-icon>
       <span>HotelStay</span>
     </a>
 
-    <nav aria-label="Primary navigation">
-      <a routerLink="/search" routerLinkActive="active">Search</a>
-      <a routerLink="/results" routerLinkActive="active">Results</a>
-      <a routerLink="/confirmation" routerLinkActive="active">Confirmation</a>
+    <span class="spacer"></span>
+
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a mat-button routerLink="/search" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">
+        <mat-icon>search</mat-icon>
+        <span>Search</span>
+      </a>
+      <a mat-button routerLink="/results" routerLinkActive="active-link">
+        <mat-icon>list</mat-icon>
+        <span>Stays</span>
+      </a>
+      <a mat-button routerLink="/confirmation" routerLinkActive="active-link">
+        <mat-icon>check_circle</mat-icon>
+        <span>Confirmations</span>
+      </a>
     </nav>
-  </header>
+  </mat-toolbar>
 
   <main class="page">
     <router-outlet />
   </main>
+
+  <footer class="footer">
+    <div class="footer__content">
+      <div class="footer__brand-col">
+        <div class="footer-brand">
+          <mat-icon class="footer-brand__icon">hotel_class</mat-icon>
+          <span>HotelStay</span>
+        </div>
+        <p>Elevating your journey with premium, secure, and hassle-free hotel bookings globally.</p>
+      </div>
+      <div class="footer__links-col">
+        <h4>Explore</h4>
+        <a routerLink="/search">Search Stays</a>
+        <a routerLink="/results">Available Hotlist</a>
+        <a routerLink="/confirmation">My Confirmation</a>
+      </div>
+      <div class="footer__links-col">
+        <h4>Partners</h4>
+        <span>PremierStays</span>
+        <span>BudgetNests</span>
+        <span>FlightWings</span>
+      </div>
+      <div class="footer__links-col">
+        <h4>Support & Legal</h4>
+        <a href="javascript:void(0)">Privacy Policy</a>
+        <a href="javascript:void(0)">Terms of Service</a>
+        <a href="javascript:void(0)">Contact Support</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2026 HotelStay Portal. All rights reserved. Professional travel bookings.</p>
+    </div>
+  </footer>
 </div>

@@ -10,6 +10,7 @@ describe('HotelCardComponent', () => {
     id: '1',
     name: 'Grand Premier Plaza',
     city: 'New York',
+    country: 'USA',
     address: '768 5th Ave',
     rating: 4.8,
     stars: 5,
