@@ -1,4 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/hotelstay-booking-portal/browser"
+  "outputDirectory": "dist/hotelstay-booking-ui/browser"
 }
