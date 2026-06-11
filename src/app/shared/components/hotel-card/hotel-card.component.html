@@ -1,27 +1,76 @@
-<article class="hotel-card">
-  <img class="hotel-card__image" [src]="hotel().imageUrl" [alt]="hotel().name" />
+<article class="hotel-card" [class.hotel-card--premier]="hotel().provider === 'PremierStays'" [class.hotel-card--budget]="hotel().provider === 'BudgetNests'">
+  <div class="hotel-card__image-container">
+    <img class="hotel-card__image" [src]="hotel().imageUrl" [alt]="hotel().name" />
+    <span class="hotel-card__provider-badge" [class.provider--premier]="hotel().provider === 'PremierStays'" [class.provider--budget]="hotel().provider === 'BudgetNests'">
+      {{ hotel().provider }}
+    </span>
+  </div>
 
   <div class="hotel-card__content">
-    <div class="hotel-card__heading">
-      <div>
-        <h3>{{ hotel().name }}</h3>
-        <p>{{ hotel().address }}, {{ hotel().city }}</p>
+    <div class="hotel-card__main-info">
+      <div class="hotel-card__header">
+        <div class="hotel-card__title-group">
+          <h3>{{ hotel().name }}</h3>
+          @if (hotel().stars) {
+            <div class="hotel-card__stars" aria-label="Star rating">
+              @for (star of starArray(); track $index) {
+                <span class="star">★</span>
+              }
+            </div>
+          }
+        </div>
+        <div class="hotel-card__score" title="Review score">
+          <span class="score-num">{{ hotel().rating }}</span>
+          <span class="score-label">/ 5</span>
+        </div>
       </div>
-      <span class="hotel-card__rating">{{ hotel().rating }}/5</span>
-    </div>
 
-    <div class="hotel-card__amenities">
-      @for (amenity of hotel().amenities; track amenity) {
-        <span>{{ amenity }}</span>
+      <p class="hotel-card__address">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        {{ hotel().address }}, {{ hotel().city }}
+      </p>
+
+      <div class="hotel-card__room-details">
+        <span class="room-type-label">Room Type:</span>
+        <span class="room-type-value">{{ hotel().roomType }}</span>
+      </div>
+
+      @if (hotel().amenities.length > 0) {
+        <div class="hotel-card__amenities">
+          @for (amenity of hotel().amenities; track amenity) {
+            <span class="amenity-tag">{{ amenity }}</span>
+          }
+        </div>
       }
     </div>
 
-    <div class="hotel-card__footer">
-      <div>
-        <strong>{{ hotel().nightlyRate | currency: hotel().currency : 'symbol' : '1.0-0' }}</strong>
-        <span>per night</span>
+    <div class="hotel-card__pricing-section">
+      <div class="hotel-card__policy" [class.policy--refundable]="hotel().refundable" [class.policy--non-refundable]="!hotel().refundable">
+        @if (hotel().refundable) {
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Free Cancellation</span>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span>Non-refundable</span>
+        }
       </div>
-      <button type="button" (click)="selectHotel.emit(hotel())">Book now</button>
+
+      <div class="hotel-card__price-details">
+        <div class="price-nightly">
+          <span class="price-val">{{ hotel().nightlyRate | currency: hotel().currency : 'symbol' : '1.0-0' }}</span>
+          <span class="price-unit">/ night</span>
+        </div>
+        
+        <div class="price-total">
+          <span class="total-label">Total ({{ nights() }} {{ nights() === 1 ? 'night' : 'nights' }}):</span>
+          <strong class="total-val">{{ totalPrice() | currency: hotel().currency : 'symbol' : '1.0-0' }}</strong>
+        </div>
+      </div>
+
+      <button type="button" class="hotel-card__book-btn" (click)="selectHotel.emit(hotel())">
+        <span>Book Stay</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
     </div>
   </div>
 </article>

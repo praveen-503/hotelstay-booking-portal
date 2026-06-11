@@ -16,14 +16,56 @@
   <app-status-banner [message]="errorMessage()" type="error" />
 
   @if (isLoading()) {
-    <div class="loading-state">Loading hotels...</div>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Finding the best hotels for you...</span>
+    </div>
   } @else {
+    @if (hotels().length > 0) {
+      <div class="results-actions">
+        <div class="results-count">
+          We found <strong>{{ hotels().length }}</strong> {{ hotels().length === 1 ? 'hotel' : 'hotels' }} in {{ searchRequest()?.destination }}
+        </div>
+        
+        <div class="sort-control">
+          <span class="sort-label">Sort by:</span>
+          <div class="sort-buttons">
+            <button 
+              type="button" 
+              class="sort-btn" 
+              [class.sort-btn--active]="sortBy() === 'price-asc'" 
+              (click)="setSortBy('price-asc')"
+            >
+              Price: Low to High
+            </button>
+            <button 
+              type="button" 
+              class="sort-btn" 
+              [class.sort-btn--active]="sortBy() === 'price-desc'" 
+              (click)="setSortBy('price-desc')"
+            >
+              Price: High to Low
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
     <div class="hotel-list">
-      @for (hotel of hotels(); track hotel.id) {
-        <app-hotel-card [hotel]="hotel" (selectHotel)="selectHotel($event)" />
+      @for (hotel of sortedHotels(); track hotel.id) {
+        <app-hotel-card 
+          [hotel]="hotel" 
+          [searchRequest]="searchRequest()" 
+          (selectHotel)="selectHotel($event)" 
+        />
       } @empty {
         @if (!errorMessage()) {
-          <div class="empty-state">No hotels matched this search.</div>
+          <div class="empty-state">
+            <div class="empty-state__icon">🏨</div>
+            <h2>No hotels available</h2>
+            <p>We couldn't find any hotels matching "{{ searchRequest()?.destination }}" for these dates or rooms.</p>
+            <a routerLink="/search" class="empty-state__btn">Change Search Details</a>
+          </div>
         }
       }
     </div>

@@ -5,12 +5,13 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { apiErrorInterceptor } from './core/interceptors/api-error.interceptor';
+import { mockBackendInterceptor } from './core/interceptors/mock-backend.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([apiErrorInterceptor])),
+    provideHttpClient(withInterceptors([mockBackendInterceptor, apiErrorInterceptor])),
     provideClientHydration()
   ]
 };

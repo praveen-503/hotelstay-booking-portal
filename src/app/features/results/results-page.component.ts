@@ -1,6 +1,6 @@
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { EMPTY, catchError, finalize, switchMap, tap } from 'rxjs';
 
 import { HotelCardComponent } from '../../shared/components/hotel-card/hotel-card.component';
@@ -11,7 +11,7 @@ import { HotelSearchService } from '../../core/services/hotel-search.service';
 
 @Component({
   selector: 'app-results-page',
-  imports: [HotelCardComponent, StatusBannerComponent],
+  imports: [HotelCardComponent, StatusBannerComponent, RouterLink],
   templateUrl: './results-page.component.html',
   styleUrl: './results-page.component.scss'
 })
@@ -26,6 +26,31 @@ export class ResultsPageComponent implements OnInit {
   readonly searchRequest = signal<SearchRequest | null>(null);
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly sortBy = signal<'price-asc' | 'price-desc' | null>(null);
+
+  readonly sortedHotels = computed(() => {
+    const list = [...this.hotels()];
+    const sort = this.sortBy();
+    const search = this.searchRequest();
+
+    if (!search || !sort) {
+      return list;
+    }
+
+    const diffTime = new Date(search.checkOutDate).getTime() - new Date(search.checkInDate).getTime();
+    const nights = Math.max(1, Math.ceil(diffTime / 86_400_000));
+    const rooms = search.rooms || 1;
+
+    const getTotalPrice = (hotel: HotelResult) => hotel.nightlyRate * rooms * nights;
+
+    if (sort === 'price-asc') {
+      return list.sort((a, b) => getTotalPrice(a) - getTotalPrice(b));
+    } else if (sort === 'price-desc') {
+      return list.sort((a, b) => getTotalPrice(b) - getTotalPrice(a));
+    }
+
+    return list;
+  });
 
   ngOnInit(): void {
     this.route.queryParamMap
@@ -58,6 +83,10 @@ export class ResultsPageComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((hotels) => this.hotels.set(hotels));
+  }
+
+  setSortBy(sort: 'price-asc' | 'price-desc' | null): void {
+    this.sortBy.set(sort);
   }
 
   selectHotel(hotel: HotelResult): void {
